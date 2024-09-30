@@ -45,32 +45,33 @@ public class Functions {
     }
 
 
-    public void loadBluetoothIntent(Activity activity) {
-        Intent enableBt = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-        startActivityForResult(activity, enableBt, BLUETOOTH_REQUEST, null);
-    }
 
     public Set<BluetoothDevice> mobileDevices(BluetoothAdapter bluetoothAdapter,Context context, Activity activity ) {
 
-        if (ActivityCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
-            Log.d("Tracing the", "Fucking ERROR");
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
+                ActivityCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
                 ActivityCompat.requestPermissions(activity, new String[]{Manifest.permission.BLUETOOTH_CONNECT}, BLUETOOTH_REQUEST);
-            }
             return null;
         }
+
         Set<BluetoothDevice> allPairedDevices = bluetoothAdapter.getBondedDevices();
         Set<BluetoothDevice> Device = new HashSet<>() ;
         if(allPairedDevices != null && !allPairedDevices.isEmpty()) {
+
             for (BluetoothDevice device : allPairedDevices) {
                 BluetoothClass bluetoothClass = device.getBluetoothClass();
+
                 if (bluetoothClass.getDeviceClass() == BluetoothClass.Device.PHONE_SMART) {
                     Device.add(device);
+                    Log.d("GOT HERE", device.getName());
                 }
             }
             return Device;
         }
-        else{return Collections.emptySet();}
+        else{
+
+            return Collections.emptySet();}
 
     }
 

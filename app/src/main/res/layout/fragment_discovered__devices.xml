@@ -6,7 +6,7 @@
     tools:context=".fragments.Discovered_Devices">
 
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/pairedDevices"
+        android:id="@+id/discoveredDevices"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"

@@ -4,10 +4,11 @@ package com.luhyah.me2u;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothClass;
-import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothManager;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.os.Build;
@@ -26,47 +27,33 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
-import androidx.recyclerview.widget.RecyclerView;
+import androidx.viewpager2.widget.ViewPager2;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Set;
+import com.google.android.material.tabs.TabLayout;
+
 
 public class UsersActivity extends AppCompatActivity {
 
     private CardView turnOnBluetooth, Messages;
-    private TextView text, noAvailableDevices;
-    private RecyclerView pairedDevicesRecyclerView;
+    private TextView text;
+    private TabLayout tabLayout;
+    private ViewPager2 viewPager2;
     Functions functions = new Functions();
     BluetoothAdapter bluetoothAdapter;
-    BluetoothManager bluetoothManager;
     private final int BLUETOOTH_REQUEST = 1;
-
-
-    ArrayList<PairedDevicesModel> pairedDevicesModels = new ArrayList<>();
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-    }
-
-    @SuppressLint("MissingPermission")
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-//        Log.d("BluetoothAdapter3", bluetoothAdapter.toString());
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if(requestCode == BLUETOOTH_REQUEST && grantResults.length >0 && grantResults[0] == PackageManager.PERMISSION_GRANTED ){
-            Intent enableBt = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-            startActivityForResult(enableBt,BLUETOOTH_REQUEST);
-        }
-        else{
-
-            text.setText(R.string.device_failed_to_grant_permission_retry);
+        if(requestCode == BLUETOOTH_REQUEST && resultCode == RESULT_OK){
+            turnOnBluetooth.setVisibility(View.GONE);
+            tabLayout.setEnabled(true);
+        } else  if (requestCode == BLUETOOTH_REQUEST && resultCode == RESULT_CANCELED){
+            turnOnBluetooth.setVisibility(View.VISIBLE);
+            tabLayout.setEnabled(false);
         }
     }
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -82,78 +69,97 @@ public class UsersActivity extends AppCompatActivity {
         turnOnBluetooth = findViewById(R.id.turnOnBlueTooth);
         Messages = findViewById(R.id.Messages);
         text = findViewById(R.id.turnOnBlueToothMessage);
-        pairedDevicesRecyclerView = findViewById(R.id.pairedDevices);
+        tabLayout = findViewById(R.id.TabLayout);
+        viewPager2 = findViewById(R.id.View_Pager);
+        TabAdapter tabAdapter =  new TabAdapter(this);
+        viewPager2.setAdapter(tabAdapter);
 
-       bluetoothManager = getSystemService(BluetoothManager.class);
-         bluetoothAdapter = bluetoothManager.getAdapter();
 
+        bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         functions.checkBluetooth(text, turnOnBluetooth, bluetoothAdapter);
-        if (bluetoothAdapter == null) {
-            Log.d("BluetoothAdap", "Null");
-        } else if (!bluetoothAdapter.isEnabled()) {
-            Log.d("BluetoothAdap", "Not Working");
-        }else{Log.d("BluetoothAdap", "Working");}
 
-        //CardView Button to call Enable Bluetooth Intent if Bluetooth is off
-        turnOnBluetooth.setOnClickListener(view -> {
-            if(bluetoothAdapter != null) {
 
-                if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
-                    //If permission is not granted request for it and handle the request
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.BLUETOOTH_CONNECT}, BLUETOOTH_REQUEST);
-                    }
-                }else{
-                    Intent enableBt = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-                    startActivityForResult(enableBt, BLUETOOTH_REQUEST);
-                }
 
+        tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+            @Override
+            public void onTabSelected(TabLayout.Tab tab) {
+                viewPager2.setCurrentItem(tab.getPosition());
+            }
+
+            @Override
+            public void onTabUnselected(TabLayout.Tab tab) {}
+
+            @Override
+            public void onTabReselected(TabLayout.Tab tab) {}
+        });
+        viewPager2.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
+            @Override
+            public void onPageSelected(int position) {
+                super.onPageSelected(position);
+                tabLayout.getTabAt(position).select();
             }
         });
 
-        if (bluetoothAdapter.isEnabled()) {
-            //Loads a set of Smart Bluetooth Device
-            //Discrimination for only android devices should be added later
-            if (functions.mobileDevices(bluetoothAdapter,getApplicationContext(),this)!= null && !functions.mobileDevices(bluetoothAdapter,getApplicationContext(),this).isEmpty()) {
-                //WRITE CODE TO LOAD THE INDIVIDUAL DEVICES AND THEIR MAC ADDRESS IN A RECYCLER VIEW INFLATED WITH CARDVIEWS
-                pairedDevicesRecyclerView.setVisibility(View.VISIBLE);
-                noAvailableDevices.setVisibility(View.GONE);
-                int i =0;
-                for(BluetoothDevice device : functions.mobileDevices(bluetoothAdapter,getApplicationContext(),this)){
-                    pairedDevicesModels.add(i,new PairedDevicesModel(device.getName(),device.getAddress()));
-                    i++;
-                }
-                PairedDevices_RecyclerViewAdapter adapter = new PairedDevices_RecyclerViewAdapter(this,pairedDevicesModels);
-                pairedDevicesRecyclerView.setAdapter(adapter);
-
-            } else {
-                //Write code to show text "NO PAIRED BLUETOOTH DEVICE"
-                pairedDevicesRecyclerView.setVisibility(View.GONE);
-                noAvailableDevices.setVisibility(View.VISIBLE);
-            }
-
-            //Load Discovered Devices
-            IntentFilter listenForAvailableDevices = new IntentFilter(BluetoothDevice.ACTION_FOUND);
+        if(!bluetoothAdapter.isEnabled()){
+            tabLayout.setEnabled(false);
         }
+        //CardView Button to call Enable Bluetooth Intent if Bluetooth is off
+        turnOnBluetooth.setOnClickListener(view -> {
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
+                    ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) !=
+                            PackageManager.PERMISSION_GRANTED) {
+                    ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.BLUETOOTH_CONNECT}, BLUETOOTH_REQUEST);
+                    return;
+            }
+            Intent enableBT = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            startActivityForResult(enableBT, BLUETOOTH_REQUEST);
+        });
+
+
+        //Go to Message Activity
         Messages.setOnClickListener(view ->{
             Intent toMessage =  new Intent(this, MessageActivity.class);
             startActivity(toMessage);
         });
+
+
+        //Broadcast to detect change in Bluetooth State
+        IntentFilter bluetoothChangeState = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
+        registerReceiver(bluetoothBroadCastReciever,bluetoothChangeState);
     }
     @Override
     protected void onStart() {
         super.onStart();
-        functions.checkBluetooth(text, turnOnBluetooth, bluetoothManager, bluetoothAdapter);
+        functions.checkBluetooth(text, turnOnBluetooth, bluetoothAdapter);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        functions.checkBluetooth(text, turnOnBluetooth, bluetoothManager, bluetoothAdapter);
+        functions.checkBluetooth(text, turnOnBluetooth,  bluetoothAdapter);
     }
 
+    private final BroadcastReceiver bluetoothBroadCastReciever = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+             String action = intent.getAction();
+            if(BluetoothAdapter.ACTION_STATE_CHANGED.equals(action)){
+                int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE,BluetoothAdapter.ERROR);
+                switch (state) {
+                    case BluetoothAdapter.STATE_ON:
+                        ///DO SoMETHING
+                        turnOnBluetooth.setVisibility(View.GONE);
+                        //Write More code here when you implement chat feature
+                        break;
+                    case BluetoothAdapter.STATE_OFF:
+                        turnOnBluetooth.setVisibility(View.VISIBLE);
+                        break;
 
-
+                }
+            }
+        }
+    };
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
@@ -168,5 +174,8 @@ public class UsersActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        unregisterReceiver(bluetoothBroadCastReciever);
     }
+
+
 }

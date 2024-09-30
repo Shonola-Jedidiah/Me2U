@@ -1,4 +1,4 @@
-package com.luhyah.me2u;
+package com.luhyah.me2u.fragments;
 
 public class PairedDevicesModel {
     String DeviceName;
