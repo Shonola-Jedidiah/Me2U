@@ -1,1 +1,1 @@
-A bluetooth communication device
+A bluetooth communication application.
