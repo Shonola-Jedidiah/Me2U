@@ -1,7 +1,7 @@
 package com.luhyah.me2u;
 
 
-import static androidx.core.app.ActivityCompat.startActivityForResult;
+
 
 import android.Manifest;
 import android.app.Activity;
@@ -9,12 +9,11 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothClass;
 import android.bluetooth.BluetoothDevice;
 
-import android.bluetooth.BluetoothManager;
 import android.content.Context;
-import android.content.Intent;
+
 import android.content.pm.PackageManager;
 import android.os.Build;
-import android.util.Log;
+
 import android.view.View;
 import android.widget.TextView;
 
@@ -64,7 +63,6 @@ public class Functions {
 
                 if (bluetoothClass.getDeviceClass() == BluetoothClass.Device.PHONE_SMART) {
                     Device.add(device);
-                    Log.d("GOT HERE", device.getName());
                 }
             }
             return Device;

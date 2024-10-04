@@ -50,7 +50,6 @@ public class MessageActivity extends AppCompatActivity {
     @SuppressLint("MissingPermission")
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-//        Log.d("BluetoothAdapter3", bluetoothAdapter.toString());
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == BLUETOOTH_REQUEST && grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
             if (!bluetoothAdapter.isEnabled()) {

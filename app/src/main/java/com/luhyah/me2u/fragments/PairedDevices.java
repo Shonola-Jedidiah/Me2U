@@ -59,6 +59,7 @@ public class PairedDevices extends Fragment {
             //BlueTooth was not turned on
             hideXShow(false);
         }
+
     }
 
     @Override
@@ -67,7 +68,7 @@ public class PairedDevices extends Fragment {
         //Check if Permission ws granted. If yes CHeck if bluetooth isEnabled() if not turn it on
         //If permission !isEnabled() Re-Request Permission
         if (requestCode == BLUETOOTH_REQUEST && grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-            search4PairedDevices(pairedDevicesModels,pairedDevicesRecyclerView);
+            search4PairedDevices(pairedDevicesModels, pairedDevicesRecyclerView);
         } else {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
                     ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.BLUETOOTH_CONNECT) !=
@@ -127,7 +128,7 @@ public class PairedDevices extends Fragment {
             pairedDevicesModels.add(i, new PairedDevicesModel(device.getName(), device.getAddress()));
             i++;
         }
-        PairedDevices_RecyclerViewAdapter adapter = new PairedDevices_RecyclerViewAdapter(requireContext(), pairedDevicesModels);
+        adapter = new PairedDevices_RecyclerViewAdapter(requireContext(), pairedDevicesModels);
         pairedDevicesRecyclerView.setAdapter(adapter);
 
     }
@@ -159,6 +160,7 @@ public class PairedDevices extends Fragment {
                             break;
                         case BluetoothAdapter.STATE_OFF:
                             hideXShow(false);
+                            break;
                     }
                 }
             }

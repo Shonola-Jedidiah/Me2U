@@ -15,10 +15,10 @@
         />
 
     <TextView
-        android:id="@+id/noAvailableDevice"
+        android:id="@+id/bluetoothIsOff"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="NO SMARTPHONE FOUND "
+        android:text="BLUETOOTH IS OFF"
         android:textSize="27dp"
         android:gravity="center"
        android:visibility="gone"
